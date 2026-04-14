@@ -19,6 +19,7 @@ public class Main {
 
         Thread.sleep(1000);
 
+        // The final count to be printed out.
         System.out.println(job.count);
     }
 }
