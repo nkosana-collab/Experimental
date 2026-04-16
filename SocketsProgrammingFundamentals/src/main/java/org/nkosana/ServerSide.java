@@ -22,6 +22,7 @@ public class ServerSide {
 
             // STEP 4: Open the "Ear" (Output)
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
