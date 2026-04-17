@@ -48,11 +48,6 @@ public class ClientHandler implements Runnable{
                         }
                     }
                 }).start();
-
-//            } catch (IOException e) {
-//                System.out.println("Connection closed.");
-//            }
-
     }
 }
 
