@@ -7,47 +7,36 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class ClientHandler implements Runnable{
+public class ClientHandler implements Runnable {
+    private Socket client;
+    private PrintWriter out;
+    private BufferedReader in;
 
-    public Socket client;
     public ClientHandler(Socket clientSocket) {
-        client = clientSocket;
+        this.client = clientSocket;
+    }
+
+    // This allows other threads to send a message TO this specific client
+    public void sendMessage(String message) {
+        out.println(message);
     }
 
     @Override
     public void run() {
-        //while(true){
-            //try {
-                new Thread(() -> {
-                    while(true) {
-                        // STEP 3: Open the "mouth" (Output)
-                        PrintWriter out = null;
-                        try {
-                            out = new PrintWriter(client.getOutputStream(), true);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+        try {
+            in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            out = new PrintWriter(client.getOutputStream(), true);
 
-                        Scanner text = new Scanner(System.in);
-                        System.out.println("DEBUG: ");
-                        String line = text.nextLine();
-
-                        out.println(line);
-                    }
-                }).start();
-
-
-                new Thread(() -> {
-                    while(true) {
-                        try {
-                            // STEP 4: Open the "Ear" (Output)
-                            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                            System.out.println("BUG: " + in.readLine());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }).start();
+            String line;
+            while ((line = in.readLine()) != null) {
+                System.out.println("Broadcasting: " + line);
+                ServerSide.broadcast(line, this); // Send to everyone else!
+            }
+        } catch (IOException e) {
+            System.out.println("A client disconnected.");
+        } finally {
+            ServerSide.clients.remove(this); // Clean up
+            try { client.close(); } catch (IOException e) {}
+        }
     }
 }
-

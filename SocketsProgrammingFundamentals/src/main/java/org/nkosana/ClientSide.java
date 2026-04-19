@@ -1,37 +1,44 @@
 package org.nkosana;
 
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 import java.util.Scanner;
 
 public class ClientSide {
     public static void main(String[] args) {
-        // STEP 1: DIal the number
         try {
             Socket socket = new Socket("127.0.0.1", 5000);
+            System.out.println("Connected to the chat server!");
 
-            while(true){
+            // 1. Start a background thread to "Listen" (The Ear)
+            new Thread(() -> {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+                    String serverMessage;
+                    while ((serverMessage = in.readLine()) != null) {
+                        System.out.println("\nIncoming: " + serverMessage);
+                        System.out.print("You: "); // Keep the prompt visible
+                    }
+                } catch (IOException e) {
+                    System.out.println("Connection to server lost.");
+                }
+            }).start();
 
-                // STEP 2: Open the "Ear" (Input)
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                System.out.println("BUG: " + in.readLine());
+            // 2. Main thread handles "Talking" (The Mouth)
+            try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+                Scanner scanner = new Scanner(System.in);
+                while (true) {
+                    System.out.print("You: ");
+                    String userInput = scanner.nextLine();
+                    out.println(userInput);
 
-                // STEP 3: Open the "Mouth" (Output)
-                PrintWriter out = new PrintWriter(socket.getOutputStream(),true);
-
-                Scanner text = new Scanner(System.in);
-                System.out.print("DEBUG: ");
-                String line = text.nextLine();
-
-                out.println(line);
+                    if (userInput.equalsIgnoreCase("exit")) break;
+                }
             }
 
+            socket.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 }
