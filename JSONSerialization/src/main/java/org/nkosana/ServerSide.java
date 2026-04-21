@@ -24,7 +24,7 @@ public class ServerSide {
     }
 
     // Method to send a message to everyone
-    public static void broadcast(String message, ClientHandler sender) {
+    public static void broadcast(Message message, ClientHandler sender) {
         for (ClientHandler client : clients) {
             if (client != sender) { // Don't send the message back to the sender
                 client.sendMessage(message);

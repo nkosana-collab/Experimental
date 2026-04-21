@@ -1,11 +1,15 @@
 package org.nkosana;
 
+
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
+import com.google.gson.Gson;
 
 public class Client2Side {
     public static void main(String[] args) {
+
+        Gson gson = new Gson();
         try {
             Socket socket = new Socket("127.0.0.1", 5000);
             System.out.println("Connected to the chat server!");
@@ -15,7 +19,12 @@ public class Client2Side {
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
                     String serverMessage;
                     while ((serverMessage = in.readLine()) != null) {
-                        System.out.println("\nIncoming: " + serverMessage);
+
+                        // Deserialize: JSON String -> Object
+                        Message receivedMsg = gson.fromJson(serverMessage, Message.class);
+
+
+                        System.out.println("\nIncoming: " + receivedMsg.getContent());
                         System.out.print("You: "); // Keep the prompt visible
                     }
                 } catch (IOException e) {
@@ -27,9 +36,14 @@ public class Client2Side {
             try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
                 Scanner scanner = new Scanner(System.in);
                 while (true) {
-                    System.out.print("You: ");
+                    System.out.print("You2: ");
                     String userInput = scanner.nextLine();
-                    out.println(userInput);
+                    Message reply = new Message("Client:2", userInput, "12:00 PM");
+
+                    //  Serialize: Object -> JSON String
+                    String jsonOutput = gson.toJson(reply);
+
+                    out.println(jsonOutput);
 
                     if (userInput.equalsIgnoreCase("exit")) break;
                 }
